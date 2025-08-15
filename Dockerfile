@@ -1,17 +1,23 @@
 # --- Stage 1: Build dependencies ---
-FROM python:3.11-slim AS builder
+FROM python:3.11-slim-bullseye AS builder
 
 WORKDIR /app
+
+# Update system packages to address vulnerabilities
+RUN apt-get update && apt-get upgrade -y && apt-get clean
 
 # Install build dependencies
 RUN pip install --upgrade pip
 COPY requirements.txt .
-RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
-
-# --- Stage 2: Production image ---
-FROM python:3.11-slim
+FROM python:3.11-slim-bullseye
 
 WORKDIR /app
+
+# Update system packages to address vulnerabilities
+RUN apt-get update && apt-get upgrade -y && apt-get clean
+
+# Copy wheels from builder and install
+COPY --from=builder /wheels /wheels
 
 # Copy wheels from builder and install
 COPY --from=builder /wheels /wheels
